@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#07141f" />
+    <meta name="description" content="Live local AquaTwin device, telemetry, analytics, and service workflow demo." />
+    <title>AquaTwin · Live Software Demo</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/console.css" />
+    <script src="/console.js" defer></script>
+  </head>
+  <body>
+    <div class="console-shell">
+      <header class="console-header">
+        <a class="console-brand" href="/console">
+          <span class="console-brand-mark">A</span>
+          <span><b>AquaTwin</b><small>DEVICE OPERATIONS</small></span>
+        </a>
+        <div class="header-path"><span>DEMO FLEET</span><i>/</i><b>AQT-1001</b><span class="demo-stamp">SYNTHETIC DATA · LOCAL PIPELINE</span></div>
+        <div class="header-status">
+          <span class="connection-pill" id="api-state"><i></i>API CHECKING</span>
+          <span class="connection-pill" id="mqtt-state"><i></i>MQTT CHECKING</span>
+          <a href="/" class="walkthrough-link">PRODUCT WALKTHROUGH <span>↗</span></a>
+        </div>
+      </header>
+
+      <main class="console-main">
+        <section class="page-heading">
+          <div>
+            <div class="eyebrow"><span class="live-dot"></span> LIVE DEVICE SIMULATION <span class="eyebrow-slash">/</span> HYDERABAD</div>
+            <h1>Purifier operations</h1>
+            <p>Follow real messages through the synthetic plant, edge processor, MQTT broker, backend analytics, and service workflow.</p>
+          </div>
+          <div class="heading-meta">
+            <span class="data-badge">DEMO MODE</span>
+            <span id="last-updated">Awaiting first telemetry…</span>
+          </div>
+        </section>
+
+        <section class="control-panel panel">
+          <div class="control-device">
+            <div class="device-avatar">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3.5C12.6 9.1 7.4 14.2 7.4 20a8.6 8.6 0 0 0 17.2 0C24.6 14.2 19.4 9.1 16 3.5Z"/><path d="M12.2 21.1c.5 2.1 2 3.3 4.3 3.6"/></svg>
+            </div>
+            <div><strong id="device-title">AQT-1001</strong><small id="device-subtitle">Hyderabad household · PIN 500081</small></div>
+            <span class="vertical-rule"></span>
+            <span class="device-state"><i id="device-state-dot"></i><b id="device-state-label">WAITING FOR DEVICE</b></span>
+          </div>
+          <div class="control-divider"></div>
+          <div class="simulation-controls">
+            <label><span>WATER SOURCE</span><select id="source-control">
+              <option value="municipal">Municipal-like</option><option value="tanker">Tanker-like</option><option value="borewell">Borewell-like</option>
+            </select></label>
+            <label class="fault-select"><span>FAULT INJECTION</span><select id="fault-control">
+              <option value="healthy">Healthy baseline</option>
+              <option value="sediment_clog">Sediment clog</option>
+              <option value="ro_fouling">RO scaling / fouling</option>
+              <option value="ro_bypass">RO bypass / O-ring leak</option>
+              <option value="pump_wear">Pump wear</option>
+              <option value="uv_ageing">UV lamp ageing</option>
+              <option value="carbon_exhaustion">Carbon exhaustion estimate</option>
+              <option value="sensor_malfunction">Sensor malfunction</option>
+            </select></label>
+            <div class="control-buttons">
+              <button class="button quiet" id="pause-button">Ⅱ Pause</button>
+              <button class="button teal" id="start-button">▶ Start</button>
+              <button class="button outline" id="advance-button">+10 demo days</button>
+              <button class="button scenario-button" id="scenario-button">▶ Primary journey</button>
+              <button class="button reset-button" id="reset-button">↻ Reset run</button>
+            </div>
+          </div>
+          <div class="command-message" id="command-message" role="status"></div>
+        </section>
+
+        <section class="kpi-grid" aria-label="Latest device measurements">
+          <article class="kpi-card panel"><div class="kpi-label">INPUT TDS <span class="signal-dot amber-dot"></span></div><div class="kpi-value"><b id="kpi-input-tds">—</b><small>ppm</small></div><div class="kpi-foot"><span id="source-profile">Source profile pending</span><span class="kpi-icon">IN</span></div></article>
+          <article class="kpi-card panel"><div class="kpi-label">OUTPUT TDS <span class="signal-dot amber-dot"></span></div><div class="kpi-value"><b id="kpi-output-tds">—</b><small>ppm</small></div><div class="kpi-foot"><span id="cutoff-state">Cut-off monitored independently</span><span class="kpi-icon">OUT</span></div></article>
+          <article class="kpi-card panel"><div class="kpi-label">SALT PASSAGE</div><div class="kpi-value"><b id="kpi-salt">—</b><small>%</small></div><div class="kpi-foot"><span>TDSout / TDSin</span><span class="kpi-icon">RO</span></div></article>
+          <article class="kpi-card panel"><div class="kpi-label">NORMALIZED FLOW</div><div class="kpi-value"><b id="kpi-npf">—</b><small>NPF</small></div><div class="kpi-foot"><span>Temperature-corrected</span><span class="kpi-icon">Qp</span></div></article>
+          <article class="kpi-card panel"><div class="kpi-label">TANK FILL TIME</div><div class="kpi-value"><b id="kpi-fill">—</b><small>min</small></div><div class="kpi-foot"><span id="tank-volume">8 L configured tank</span><span class="kpi-icon">TANK</span></div></article>
+          <article class="kpi-card panel kpi-state"><div class="kpi-label">EDGE QUALITY</div><div class="quality-value" id="kpi-quality">WAITING</div><div class="kpi-foot"><span id="steady-state">Steady-state gate: >60 s</span><span class="kpi-icon">EDGE</span></div></article>
+        </section>
+
+        <section class="main-grid">
+          <div class="left-column">
+            <article class="panel section-panel filter-panel">
+              <div class="panel-heading">
+                <div><span class="eyebrow">STAGE ESTIMATES</span><h2>Filter health</h2></div>
+                <span class="subtle-status" id="health-confidence">Waiting for valid steady-state readings</span>
+              </div>
+              <div class="health-table" id="filter-health-list"><div class="empty-state">The edge simulator is preparing its first accepted measurement.</div></div>
+              <div class="pump-component" id="pump-component"></div>
+              <div class="module-note"><b>Component boundary</b><span>Pump is shown separately; UF is present in the path but has no dedicated model from the current signals.</span></div>
+            </article>
+
+            <article class="panel section-panel trend-panel">
+              <div class="panel-heading">
+                <div><span class="eyebrow">ACCEPTED TELEMETRY · CURRENT RUN</span><h2>Performance trend</h2></div>
+                <div class="chart-legend"><span><i class="legend-cyan"></i>Normalized flow</span><span><i class="legend-blue"></i>Salt passage</span></div>
+              </div>
+              <div class="chart-block">
+                <div class="chart-meta"><b>NPF</b><span>Temperature corrected · NDP inputs from demo config</span></div>
+                <div class="chart-host" id="npf-chart"><div class="empty-chart">Waiting for steady-state history</div></div>
+              </div>
+              <div class="chart-block second-chart">
+                <div class="chart-meta"><b>SALT PASSAGE</b><span>TDSout / TDSin</span></div>
+                <div class="chart-host" id="salt-chart"><div class="empty-chart">Waiting for steady-state history</div></div>
+              </div>
+            </article>
+
+            <article class="panel section-panel sensors-panel">
+              <div class="panel-heading">
+                <div><span class="eyebrow">MOST RECENT EDGE SUMMARY</span><h2>Operating measurements</h2></div>
+                <span class="optional-label">OPTIONAL KIT SIGNALS SHOWN SEPARATELY</span>
+              </div>
+              <div class="sensor-grid" id="sensor-grid"></div>
+            </article>
+          </div>
+
+          <aside class="right-column">
+            <article class="panel section-panel prediction-panel">
+              <div class="panel-heading">
+                <div><span class="eyebrow">CLOUD ANALYTICS · ILLUSTRATIVE</span><h2>Membrane outlook</h2></div>
+                <span class="model-chip">500 PARTICLES</span>
+              </div>
+              <div class="rul-range" id="rul-range"><div class="empty-state compact">Waiting for a valid flow trend</div></div>
+              <div class="prediction-window" id="prediction-window">Predicted failure window: —</div>
+              <div class="cause-card">
+                <span class="cause-label">DEMO CAUSE SCORER</span>
+                <b id="cause-name">No fault pattern yet</b>
+                <span id="cause-confidence">Synthetic rule-based score · not field calibrated</span>
+                <ul id="cause-evidence"><li>Evidence will appear after valid telemetry.</li></ul>
+              </div>
+              <div class="profile-card"><div><span class="cause-label">INFERRED FEED PROFILE</span><b id="inferred-source">—</b></div><strong id="source-confidence">—</strong><p id="source-posterior">Uses configured TDS + temperature distributions; source identity is an inference.</p></div>
+              <div class="safety-callout"><span class="shield-icon">◇</span><div><b>SAFETY INTERLOCKS STAY INDEPENDENT</b><small id="safety-summary">Predictive advice cannot override output-TDS, UV, leak, or dry-run protection.</small></div></div>
+            </article>
+
+            <article class="panel section-panel alerts-panel">
+              <div class="panel-heading"><div><span class="eyebrow">DEVICE + EDGE EVENTS</span><h2>Alerts</h2></div><span class="alert-count" id="alert-count">0 OPEN</span></div>
+              <div class="alert-list" id="alert-list"><div class="empty-state compact">No alerts in this simulation run.</div></div>
+            </article>
+
+            <article class="panel section-panel service-panel">
+              <div class="panel-heading"><div><span class="eyebrow">PROPOSED OPERATIONS EXTENSION</span><h2>Replacement workflow</h2></div><span class="workflow-count" id="service-count">0 REQUESTS</span></div>
+              <div id="service-content"><div class="empty-state compact">A stage-specific recommendation will create a demo request when configured criteria are met.</div></div>
+              <div class="service-separation"><b>Pincode model priors</b><i>≠</i><b>Dispatch serviceability</b></div>
+            </article>
+          </aside>
+        </section>
+
+        <footer class="console-footer">
+          <span><i class="live-dot"></i> MQTT → backend → SQLite → analytics → API</span>
+          <span id="footer-telemetry">0 messages stored</span>
+          <span>All simulation values are synthetic. Forecasts and project targets are not field validated.</span>
+        </footer>
+      </main>
+      <div class="toast" id="toast"></div>
+    </div>
+  </body>
+</html>

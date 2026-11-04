@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07141f" />
+    <meta
+      name="description"
+      content="AquaTwin interactive engineering walkthrough — from purifier sensors to predictive service."
+    />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>AquaTwin — Interactive Product Walkthrough</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="AquaTwin walkthrough home" data-action="reset">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32">
+              <path d="M16 3.5C12.6 9.1 7.4 14.2 7.4 20a8.6 8.6 0 0 0 17.2 0C24.6 14.2 19.4 9.1 16 3.5Z" />
+              <path d="M12.2 21.1c.5 2.1 2 3.3 4.3 3.6" />
+            </svg>
+          </span>
+          <span class="brand-copy">
+            <strong>AquaTwin</strong>
+            <small>PRODUCT WALKTHROUGH</small>
+          </span>
+        </a>
+
+        <div class="journey-ribbon" aria-label="AquaTwin system journey">
+          <div class="journey-line"></div>
+          <span class="journey-packet packet-one"></span>
+          <span class="journey-packet packet-two"></span>
+          <button class="journey-node is-active" data-zone="home"><i></i><span>HOME</span></button>
+          <button class="journey-node" data-zone="edge"><i></i><span>EDGE</span></button>
+          <button class="journey-node" data-zone="mqtt"><i></i><span>MQTT</span></button>
+          <button class="journey-node" data-zone="cloud"><i></i><span>CLOUD</span></button>
+          <button class="journey-node" data-zone="action"><i></i><span>ACTION</span></button>
+        </div>
+
+        <div class="top-actions">
+          <a class="software-demo-link" href="http://127.0.0.1:8000/console" title="Open the live synthetic backend demo">LIVE SOFTWARE <span>↗</span></a>
+          <label class="compact-select">
+            <span>WATER SOURCE</span>
+            <select id="source-select" aria-label="Change simulated water source">
+              <option value="municipal">Municipal</option>
+              <option value="tanker">Tanker</option>
+              <option value="borewell">Borewell</option>
+            </select>
+          </label>
+          <button class="icon-button" id="fullscreen-button" title="Toggle fullscreen (F)" aria-label="Toggle fullscreen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" /></svg>
+          </button>
+          <button class="icon-button" id="notes-button" title="Presenter notes (N)" aria-label="Toggle presenter notes">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h14v15H5zM8 8h8M8 12h8M8 16h5" /></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="journey-context">
+        <div class="context-left">
+          <span class="live-dot"></span>
+          <span>SIMULATED DEVICE</span>
+          <b>AQT-1001</b>
+          <span class="context-divider"></span>
+          <span id="source-label">Municipal water</span>
+        </div>
+        <div class="context-right">
+          <span class="demo-chip">SYNTHETIC DEMO DATA</span>
+          <button class="text-button" id="reset-button">Reset journey</button>
+        </div>
+      </div>
+
+      <div class="workspace">
+        <aside class="scene-rail" aria-label="Walkthrough chapters">
+          <div class="rail-heading"><span>JOURNEY</span><span id="rail-count">01 / 14</span></div>
+          <nav id="scene-navigation" class="scene-navigation"></nav>
+          <div class="rail-bottom">
+            <span class="rail-pulse"></span>
+            <span>FOLLOW THE<br />WATER + DATA</span>
+          </div>
+        </aside>
+
+        <main class="stage" id="stage" aria-live="polite">
+          <div class="stage-topline">
+            <div>
+              <span class="eyebrow" id="scene-kicker">THE OPPORTUNITY</span>
+              <span class="stage-separator">/</span>
+              <span class="eyebrow muted" id="scene-index">01 — 14</span>
+            </div>
+            <div class="stage-actions">
+              <button class="subtle-button" id="motion-button" title="Pause motion (P)">
+                <span class="motion-icon">Ⅱ</span><span id="motion-label">PAUSE MOTION</span>
+              </button>
+              <button class="subtle-button" id="replay-button" title="Replay this scene (R)">
+                <span class="replay-icon">↻</span><span>REPLAY SCENE</span>
+              </button>
+            </div>
+          </div>
+
+          <section class="scene-host" id="scene-host" aria-label="Current walkthrough scene"></section>
+
+          <footer class="controlbar">
+            <button class="nav-button previous" id="previous-button" aria-label="Previous scene">
+              <span aria-hidden="true">←</span><span>BACK</span>
+            </button>
+            <div class="progress-track" id="progress-track" aria-label="Scene progress"></div>
+            <div class="scene-counter"><strong id="counter-current">01</strong><span>/</span><span>14</span></div>
+            <button class="nav-button next" id="next-button" aria-label="Next scene">
+              <span>CONTINUE</span><span aria-hidden="true">→</span>
+            </button>
+          </footer>
+        </main>
+      </div>
+
+      <aside class="notes-drawer" id="notes-drawer" aria-hidden="true">
+        <div class="notes-header">
+          <div><span class="eyebrow">PRESENTER VIEW</span><h2>Talk track & build notes</h2></div>
+          <button class="close-button" id="close-notes" aria-label="Close notes">×</button>
+        </div>
+        <div id="notes-content" class="notes-content"></div>
+      </aside>
+      <div class="drawer-scrim" id="drawer-scrim"></div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </div>
+  </body>
+</html>

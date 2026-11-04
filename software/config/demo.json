@@ -1,0 +1,112 @@
+{
+  "demo_mode": true,
+  "device": {
+    "device_id": "AQT-1001",
+    "customer_id": "CUS-DEMO-01",
+    "customer_name": "Hyderabad household",
+    "pincode": "500081",
+    "purifier_model": "AquaTwin RO + UV demo unit",
+    "firmware_version": "edge-simulator-0.1",
+    "installation_date": "2026-01-15"
+  },
+  "simulation": {
+    "tick_seconds": 2.0,
+    "simulated_days_per_tick": 1.0,
+    "random_seed": 1001,
+    "optional_sensor_kit_enabled": true,
+    "tank_usable_volume_l": 8.0,
+    "fallback_counter_capacity_l": 6000.0,
+    "reference_flow_lpm": 0.2105263158,
+    "reference_ndp_mpa": 0.45,
+    "demo_ndp_mpa": 0.45,
+    "output_tds_cutoff_ppm": 150,
+    "safety": {
+      "uv_lamp_hard_limit_hours": 240
+    },
+    "manufacturer_max_life_days": {
+      "sediment": 180,
+      "carbon": 180,
+      "ro_membrane": 365,
+      "uv": 365
+    },
+    "replacement_warning_days": 45,
+    "telemetry_publish_every_ticks": 1,
+    "analytics_run_every_ticks": 3,
+    "pause_primary_scenario_on_recommendation": true,
+    "source_profiles": {
+      "municipal": {
+        "feed_tds_mean_ppm": 320,
+        "feed_tds_std_ppm": 8,
+        "temperature_c": 25,
+        "temperature_std_c": 0.4,
+        "profile_label": "municipal-like"
+      },
+      "tanker": {
+        "feed_tds_mean_ppm": 650,
+        "feed_tds_std_ppm": 28,
+        "temperature_c": 28,
+        "temperature_std_c": 1.0,
+        "profile_label": "tanker-like"
+      },
+      "borewell": {
+        "feed_tds_mean_ppm": 850,
+        "feed_tds_std_ppm": 42,
+        "temperature_c": 25,
+        "temperature_std_c": 1.2,
+        "profile_label": "borewell-like"
+      }
+    },
+    "faults": {
+      "sediment_clog": {
+        "max_pressure_drop_mpa": 0.1,
+        "max_fill_time_multiplier": 1.6
+      },
+      "ro_fouling": {
+        "growth_per_simulated_day": 0.018,
+        "max_normalized_resistance": 1.0,
+        "max_flow_loss_fraction": 0.42,
+        "max_salt_passage_increase": 0.045
+      },
+      "ro_bypass": {
+        "salt_passage_increase": 0.145
+      },
+      "pump_wear": {
+        "current_increase_ma": 360
+      },
+      "uv_ageing": {
+        "current_loss_fraction": 0.55
+      },
+      "carbon_exhaustion": {
+        "volume_proxy_l": 1800
+      }
+    },
+    "edge": {
+      "steady_state_runtime_s": 60,
+      "valid_tds_min_ppm": 0,
+      "valid_tds_max_ppm": 3000,
+      "salt_passage_sudden_jump": 0.08
+    },
+    "analytics": {
+      "particle_count": 500,
+      "forecast_horizon_days": 730,
+      "forecast_eol_npf": 0.75,
+      "ekf_initial_state": [0.05, 0.005, 0.0],
+      "ekf_process_noise": [0.0008, 0.00015, 0.08],
+      "ekf_measurement_noise": [0.02, 0.0004]
+    },
+    "service": {
+      "ro_sku": "AQT-RO-01",
+      "sediment_sku": "AQT-SED-01",
+      "carbon_sku": "AQT-CARB-01",
+      "uv_sku": "AQT-UV-01",
+      "initial_inventory": {
+        "AQT-RO-01": 4,
+        "AQT-SED-01": 12,
+        "AQT-CARB-01": 10,
+        "AQT-UV-01": 3
+      },
+      "serviceable_pincodes": ["500081", "500032", "500034", "500089"],
+      "warehouse": "Hyderabad demo hub"
+    }
+  }
+}

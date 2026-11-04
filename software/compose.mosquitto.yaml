@@ -1,0 +1,35 @@
+services:
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: aquatwin-mqtt
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h 127.0.0.1 -t '$$SYS/broker/uptime' -C 1 -W 3 >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+
+  app:
+    build:
+      context: ..
+      dockerfile: software/Dockerfile
+    container_name: aquatwin-demo-app
+    depends_on:
+      mqtt:
+        condition: service_healthy
+    environment:
+      AQUATWIN_EMBEDDED_BROKER: "0"
+      AQUATWIN_MQTT_HOST: mqtt
+      AQUATWIN_MQTT_PORT: "1883"
+      AQUATWIN_DB_PATH: /app/data/aquatwin-demo.sqlite3
+    ports:
+      - "8000:8000"
+    volumes:
+      - aquatwin-demo-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  aquatwin-demo-data:

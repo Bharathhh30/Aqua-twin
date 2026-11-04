@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AquaTwin browser smoke test</title>
+    <style>
+      body { margin: 0; padding: 18px; color: #dcebed; background: #07141f; font: 13px/1.5 system-ui,sans-serif; }
+      h1 { margin: 0 0 8px; font-size: 18px; }
+      #result { color: #52dfd4; white-space: pre-wrap; }
+      #failures { color: #ff8b8f; }
+      iframe { position: fixed; width: 1px; height: 1px; left: -10px; top: -10px; border: 0; }
+    </style>
+  </head>
+  <body>
+    <h1>AquaTwin walkthrough smoke test</h1>
+    <div id="result">Running browser checks…</div>
+    <div id="failures"></div>
+    <iframe title="AquaTwin walkthrough under test" src="../index.html"></iframe>
+    <script>
+      const result = document.querySelector("#result");
+      const failureBox = document.querySelector("#failures");
+      const wait = (ms = 150) => new Promise((resolve) => setTimeout(resolve, ms));
+      const failures = [];
+      const check = (condition, message) => { if (!condition) failures.push(message); };
+
+      async function run() {
+        const frame = document.querySelector("iframe");
+        if (frame.contentDocument.readyState !== "complete") {
+          await new Promise((resolve) => frame.addEventListener("load", resolve, { once: true }));
+        }
+        await wait(200);
+        const doc = frame.contentDocument;
+        const click = (selector) => {
+          const element = doc.querySelector(selector);
+          if (!element) throw new Error(`Missing test target: ${selector}`);
+          element.dispatchEvent(new frame.contentWindow.MouseEvent("click", { bubbles: true, cancelable: true }));
+        };
+
+        check(doc.querySelectorAll(".scene-link").length === 14, "Expected all 14 scenes in the navigation rail.");
+        for (let index = 0; index < 14; index += 1) {
+          click(`.scene-link[data-scene="${index}"]`);
+          await wait(160);
+          check(doc.querySelector("#scene-index").textContent.startsWith(String(index + 1).padStart(2, "0")), `Scene ${index + 1} did not navigate.`);
+          check(Boolean(doc.querySelector("#scene-host h1")), `Scene ${index + 1} has no visible narrative heading.`);
+        }
+
+        // Interactive purifier and sensor exploration.
+        click('.scene-link[data-scene="2"]');
+        await wait(170);
+        click('[data-part="sediment"]');
+        await wait(100);
+        check(doc.querySelector(".selection-card").textContent.includes("Sediment"), "Purifier component selection did not update its explanation.");
+        click('.scene-link[data-scene="3"]');
+        await wait(170);
+        click('[data-sensor="output-tds"]');
+        await wait(80);
+        check(doc.querySelector(".sensor-selection").textContent.includes("Output TDS"), "Sensor selection did not update its explanation.");
+
+        // Shared source state and the brief's formula example.
+        const source = doc.querySelector("#source-select");
+        source.value = "tanker";
+        source.dispatchEvent(new Event("change", { bubbles: true }));
+        await wait(80);
+        click('.scene-link[data-scene="3"]');
+        await wait(170);
+        check(doc.querySelector(".sensor-explorer").textContent.includes("650 ppm"), "Tanker profile did not reach the sensor scene.");
+        check(doc.querySelector(".sensor-explorer").textContent.includes("35 ppm"), "Expected the synthetic 650/35 ppm example.");
+
+        click('.scene-link[data-scene="5"]');
+        await wait(170);
+        source.value = "municipal";
+        source.dispatchEvent(new Event("change", { bubbles: true }));
+        await wait(80);
+        click('[data-action="use-formula-example"]');
+        await wait(80);
+        check(doc.querySelector(".formula-result").textContent.includes("1.092"), "TCF example did not calculate as expected at 28 C.");
+        check(doc.querySelector(".formula-result:nth-of-type(2)")?.textContent.includes("5.38%") ||
+          [...doc.querySelectorAll(".formula-result")].some((node) => node.textContent.includes("5.38%")), "Salt-passage example did not calculate as expected.");
+        for (const [key, value] of [["qp", "0.25"], ["ndpRef", "0.5"], ["ndp", "0.4"]]) {
+          const input = doc.querySelector(`[data-npf="${key}"]`);
+          input.value = value;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        check(doc.querySelector("#npf-result").textContent.includes("configured demo inputs"), "Configured NPF inputs did not produce a result.");
+
+        // Faults update measurements and route through the service workflow.
+        click('.scene-link[data-scene="12"]');
+        await wait(170);
+        click('[data-fault="ro-bypass"]');
+        await wait(100);
+        check(doc.querySelector('[data-live="scenario-quality"]').textContent === "VALID", "Bypass should remain a purifier fault, not a sensor fault.");
+        check(doc.querySelector('[data-live="scenario-passage"]').textContent.includes("%"), "Bypass did not update shared salt-passage output.");
+
+        click('[data-fault="sensor-malfunction"]');
+        await wait(100);
+        check(doc.querySelector('[data-live="scenario-quality"]').textContent === "SUSPECT", "Sensor malfunction did not lower telemetry quality.");
+        check(doc.querySelector(".safety-strip").textContent.includes("not overridden"), "Safety interlock independence is not shown.");
+
+        click('[data-fault="ro-fouling"]');
+        await wait(100);
+        click('.scene-link[data-scene="11"]');
+        await wait(170);
+        for (let step = 0; step < 5; step += 1) click('[data-action="advance-service"]');
+        check(doc.querySelector(".service-board-head .tag").textContent.includes("DELIVERED"), "Service flow did not reach simulated delivery.");
+
+        click('.scene-link[data-scene="13"]');
+        await wait(170);
+        click(".replay-full");
+        await wait(21500);
+        check(doc.querySelector("#scene-index").textContent.startsWith("14"), "End-to-end replay did not reach its final chapter.");
+        check(doc.querySelector(".context-left").textContent.includes("Tanker water"), "End-to-end replay did not carry source state through the journey.");
+        check(doc.querySelector("#scene-host").textContent.includes("Replay"), "End-to-end replay did not render the final journey state.");
+
+        if (failures.length) {
+          result.textContent = `FAIL · ${failures.length} issue(s)`;
+          failureBox.textContent = failures.map((item) => `• ${item}`).join("\n");
+          document.documentElement.dataset.testResult = "fail";
+        } else {
+          result.textContent = "PASS · 14 scenes, shared source/fault state, example calculations, NPF configuration, sensor-quality fallback, safety lane, and service workflow.";
+          document.documentElement.dataset.testResult = "pass";
+        }
+      }
+
+      run().catch((error) => {
+        result.textContent = `FAIL · ${error.message}`;
+        document.documentElement.dataset.testResult = "fail";
+      });
+    </script>
+  </body>
+</html>

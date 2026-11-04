@@ -1,0 +1,12 @@
+# Python / local software demo
+__pycache__/
+*.py[cod]
+software/.venv/
+software/data/*.sqlite3
+software/data/*.sqlite3-shm
+software/data/*.sqlite3-wal
+.uv-cache/
+
+# Frontend tooling if added later
+node_modules/
+dist/
